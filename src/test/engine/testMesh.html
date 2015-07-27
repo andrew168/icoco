@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Mesh test.</title>
+    <link rel="stylesheet" type="text/css" href="demos.css"/>
+    <script src="../../../dist/all.js"></script>
+    <script src="creature/glmatrix.js"></script>
+    <script src="creature/CreatureMeshBone.js"></script>
+    <script src="creature/CreatureRenderer.js"></script>
+</head>
+<body>
+
+<script>
+    (function() {
+        var W=600;
+        var H=600;
+        var AssetManager= cc.plugin.asset.AssetManager;
+        function loadResources() {
+            var loader= new cc.plugin.loader.Loader({
+                prefix : "../res/creature/",
+                resources: [
+                    "demo1.json@dragonRes",
+                    "dragon.png@skinRes"
+                ] });
+            loader.setProgressLoadForResource( "dragonRes", function(p) {
+                var c= document.getElementById("loader");
+                c.innerHTML="Loading "+p+"%";
+            });
+            loader.startLoading(
+                    function onEnd(resources) {
+                        initialize(resources);
+                    }
+            );
+        }
+
+        function progressHide() {
+            document.getElementById("loader").style.display="none";
+        }
+        /**
+         *
+         * @param resources {Array<cc.plugin.loader.Resource}
+         */
+        function initialize( resources ) {
+            progressHide();
+
+            cc.plugin.asset.AssetManager.addImage( resources['skinRes'], 'skinTex' );
+
+            var actual_JSON= resources['dragonRes'];
+            var new_creature = new Creature(actual_JSON);
+
+            var new_animation_1 = new CreatureAnimation(actual_JSON, "default", new_creature);
+
+            var new_manager = new CreatureManager(new_creature);
+            new_manager.AddAnimation(new_animation_1);
+            new_manager.SetActiveAnimationName("default", false);
+            new_manager.SetShouldLoop(true);
+            new_manager.SetIsPlaying(true);
+            new_manager.RunAtTime(0);
+
+            var target_creature = new_manager.target_creature;
+            var read_pts = target_creature.render_pts;
+            var read_uvs = target_creature.global_uvs;
+
+            //////
+            ////// Adjust uv for POT
+            //////
+            var texture= cc.plugin.asset.AssetManager.getTexture("skinTex");
+            for( var i=0; i<read_uvs.length; i+=2 ) {
+                read_uvs[i  ]/= texture._textureWidth/texture.getPixelsWide();
+                read_uvs[i+1]/= texture._textureHeight/texture.getPixelsHigh();
+            }
+
+            var indices= target_creature.global_indices;
+
+            cc.render.RENDER_ORIGIN= cc.render.ORIGIN_BOTTOM;
+
+            var renderer= new cc.render.WebGLRenderer(800,600,document.getElementById("c"));
+            var director= new cc.node.Director().setRenderer( renderer );
+            var scene= director.createScene();
+
+            scene.scheduleUpdate();
+            scene.update= function( delta ) {
+                new_manager.Update(delta);
+            };
+
+            var obj = makeObj();
+
+            scene.draw= function( ctx ) {
+                ctx.clear();
+                ctx.setFillStyleColorArray([1,1,1,1]);
+                ctx.fillRect(0,0,800,600);
+                ctx.save();
+                ctx.translate(400, 300);
+                ctx.scale(130, 130);
+                ctx.drawMesh(obj.vertices, obj.uvs, obj.indices, 0xffffffff, texture);
+                ctx.restore();
+            };
+
+
+            director.runScene( scene );
+        }
+
+        window.addEventListener("DOMContentLoaded", loadResources, false);
+
+    })();
+
+    // private
+    function makeObj() {
+        var vertices = [
+                    0, 1, 0,
+                    0, 0, 0,
+                    1, 0, 0,
+                    1, 1, 0],
+                uvs = [0, 1,
+                    0, 0,
+                    1, 0,
+                    1, 1],
+
+                indices = [0, 1, 2,
+                    2, 3, 0];
+
+
+        var step = 0.1;
+        function change() {
+            var ix = (3 * 3);
+            var iy = ix + 1;
+            vertices[ix] += step;
+            vertices[iy] += step;
+            if (vertices[ix] > 2) {
+                step = -0.1;
+            } else if (vertices[ix] < 0.5) {
+                step = 0.1;
+            }
+            setTimeout(change, 100);
+        }
+        setTimeout(change, 100);
+        return {vertices: vertices, uvs: uvs, indices: indices}
+    }
+
+</script>
+
+<div>
+    <div>
+        <div><span id="loader"></span></div>
+        <div>
+            <canvas id="c"></canvas>
+        </div>
+        <div>
+            <span id="span"></span>
+        </div>
+    </div>
+    <div>
+        <p>
+            This demos shows Kreatures integration
+        </p>
+    </div>
+</div>
+
+</body>
+</html>
