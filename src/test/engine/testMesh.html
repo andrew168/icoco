@@ -12,6 +12,7 @@
 <body>
 
 <script>
+    var vertexID = 0;
     (function() {
         var W=600;
         var H=600;
@@ -21,7 +22,7 @@
                 prefix : "../res/creature/",
                 resources: [
                     "demo1.json@dragonRes",
-                    "dragon.png@skinRes"
+                    "Image1.png@skinRes"
                 ] });
             loader.setProgressLoadForResource( "dragonRes", function(p) {
                 var c= document.getElementById("loader");
@@ -92,7 +93,7 @@
                 ctx.fillRect(0,0,800,600);
                 ctx.save();
                 ctx.translate(400, 300);
-                ctx.scale(130, 130);
+                ctx.scale(230, 230);
                 ctx.drawMesh(obj.vertices, obj.uvs, obj.indices, 0xffffffff, texture);
                 ctx.restore();
             };
@@ -121,16 +122,17 @@
                     2, 3, 0];
 
 
-        var step = 0.1;
+        var step = 0.01;
+
         function change() {
-            var ix = (3 * 3);
+            var ix = (vertexID * 3);
             var iy = ix + 1;
             vertices[ix] += step;
             vertices[iy] += step;
             if (vertices[ix] > 2) {
-                step = -0.1;
+                step = -0.01;
             } else if (vertices[ix] < 0.5) {
-                step = 0.1;
+                step = 0.01;
             }
             setTimeout(change, 100);
         }
@@ -138,10 +140,18 @@
         return {vertices: vertices, uvs: uvs, indices: indices}
     }
 
+    function onChange() {
+        vertexID ++;
+        if (vertexID > 3) {
+            vertexID = 0;
+        }
+    }
+
 </script>
 
 <div>
     <div>
+        <button onclick="onChange()">Change</button>
         <div><span id="loader"></span></div>
         <div>
             <canvas id="c"></canvas>
