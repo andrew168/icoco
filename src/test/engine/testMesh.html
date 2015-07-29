@@ -8,6 +8,8 @@
     <script src="creature/glmatrix.js"></script>
     <script src="creature/CreatureMeshBone.js"></script>
     <script src="creature/CreatureRenderer.js"></script>
+    <script src="meshObj.js"></script>
+    <script src="rectangle.js"></script>
 </head>
 <body>
 
@@ -86,14 +88,19 @@
 
             var obj = makeObj();
 
+            var M = 3;
+            var N = 3;
+            var obj2 = cc.demo.Rectangle.generateMesh(800, 600, M, N);
+            obj2.plus(M-2, N-2, 200, 200);
+
             scene.draw= function( ctx ) {
                 ctx.clear();
                 ctx.setFillStyleColorArray([1,1,1,1]);
                 ctx.fillRect(0,0,800,600);
                 ctx.save();
-                ctx.translate(400, 300);
-                ctx.scale(130, 130);
-                ctx.drawMesh(obj.vertices, obj.uvs, obj.indices, 0xffffffff, texture);
+                ctx.translate(0, 0);
+                ctx.scale(1, 1);
+                ctx.drawMesh(obj2.vertices, obj2.UVs, obj2.indices, 0xffffffff, texture);
                 ctx.restore();
             };
 
@@ -134,7 +141,7 @@
             }
             setTimeout(change, 100);
         }
-        setTimeout(change, 100);
+        // setTimeout(change, 100);
         return {vertices: vertices, uvs: uvs, indices: indices}
     }
 
